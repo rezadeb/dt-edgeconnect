@@ -1,0 +1,25 @@
+# OPTIONAL - EdgeConnect for Kubernetes Connector only (no private host patterns).
+#
+# This follows the example in the Dynatrace docs
+# "Set up EdgeConnect for Kubernetes Connector using the Dynatrace Operator".
+# It has no hostPatterns.
+#
+# Note: the Operator parameter reference says hostPatterns is mandatory when
+# oauth.provisioner is true, while the docs example above leaves it out.
+# Validate this variant in your own environment. The main sample
+# (../05-edgeconnect.yaml) includes hostPatterns.
+apiVersion: dynatrace.com/v1alpha2
+kind: EdgeConnect
+metadata:
+  name: edgeconnect-k8s
+  namespace: dynatrace
+spec:
+  apiServer: "<environment-id>.apps.dynatrace.com"
+  serviceAccountName: edgeconnect-k8s-sa
+  oauth:
+    provisioner: true
+    clientSecret: edgeconnect-oauth
+    endpoint: https://sso.dynatrace.com/sso/oauth2/token
+    resource: "urn:dtaccount:<account-uuid>"
+  kubernetesAutomation:
+    enabled: true

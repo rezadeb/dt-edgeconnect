@@ -1,0 +1,38 @@
+# Step 4 - EdgeConnect managed by the Dynatrace Operator ("provisioner" mode).
+#
+# One EdgeConnect that serves BOTH:
+#   - Kubernetes Connector (kubernetesAutomation.enabled: true), and
+#   - general requests from Workflows/app functions to private hosts (hostPatterns).
+#
+# In provisioner mode the Operator creates the EdgeConnect configuration in Dynatrace,
+# runs the pod, and creates the Kubernetes Connector connection. Because of this,
+# host patterns are managed here (in the custom resource), not in the Dynatrace UI.
+#
+# Replace every value in <angle brackets>. The examples use the production SaaS stage.
+apiVersion: dynatrace.com/v1alpha2
+kind: EdgeConnect
+metadata:
+  name: edgeconnect-k8s # becomes the EdgeConnect name in Dynatrace (RFC 1123 label, max 50 chars)
+  namespace: dynatrace # the Operator reconciles EdgeConnect resources only in its own namespace
+spec:
+  apiServer: "<environment-id>.apps.dynatrace.com"
+  # Hosts that Dynatrace should route through this EdgeConnect (wildcards replace the leading labels).
+  # A host pattern can belong to only one EdgeConnect configuration.
+  hostPatterns:
+    - "internal-service.example.org"
+    - "*.internal.example.org"
+  oauth:
+    provisioner: true
+    clientSecret: edgeconnect-oauth # Secret from 01-oauth-secret.template.yaml
+    endpoint: https://sso.dynatrace.com/sso/oauth2/token
+    resource: "urn:dtaccount:<account-uuid>" # shown when you create the OAuth client
+  kubernetesAutomation:
+    enabled: true
+  serviceAccountName: edgeconnect-k8s-sa # from 02-serviceaccount.yaml (same namespace as this resource)
+  replicas: 1
+  # Optional - pin the image. With Dynatrace Operator 1.11.0+ the Operator can resolve the
+  # image automatically; that needs the OAuth scope fleet-management:container-images:read.
+  # If you do not grant that scope, set imageRef explicitly:
+  # imageRef:
+  #   repository: docker.io/dynatrace/edgeconnect
+  #   tag: latest
