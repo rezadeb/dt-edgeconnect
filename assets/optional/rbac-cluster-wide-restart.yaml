@@ -1,0 +1,31 @@
+# OPTIONAL - NOT RECOMMENDED - Patch Deployments in ALL namespaces.
+#
+# WARNING: this includes system namespaces such as kube-system and the namespace of the
+# Dynatrace Operator itself. A workflow that targets the wrong namespace could restart
+# or change critical components. "patch" allows changing any field of a Deployment,
+# not only restarting it.
+#
+# The Dynatrace docs recommend a namespaced Role and a cluster-wide ClusterRole only when
+# cluster-wide access is really required, following the principle of least privilege.
+# Prefer rbac-multi-namespace.yaml and add one RoleBinding per namespace instead.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: edgeconnect-deployment-restarter-all
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: edgeconnect-deployment-restarter-all
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edgeconnect-deployment-restarter-all
+subjects:
+  - kind: ServiceAccount
+    name: edgeconnect-k8s-sa
+    namespace: dynatrace

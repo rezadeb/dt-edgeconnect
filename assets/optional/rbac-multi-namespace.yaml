@@ -1,0 +1,45 @@
+# OPTIONAL - Restart Deployments in SEVERAL namespaces without repeating the rules.
+#
+# One ClusterRole defines the permissions once. A RoleBinding in each namespace
+# grants them ONLY in that namespace (standard Kubernetes RBAC behavior).
+# Add one RoleBinding block per namespace.
+#
+# Verify the result with:
+#   kubectl auth can-i patch deployments -n <namespace> \
+#     --as=system:serviceaccount:dynatrace:edgeconnect-k8s-sa
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: edgeconnect-deployment-restarter
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: edgeconnect-deployment-restarter
+  namespace: "<namespace-1>"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edgeconnect-deployment-restarter
+subjects:
+  - kind: ServiceAccount
+    name: edgeconnect-k8s-sa
+    namespace: dynatrace
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: edgeconnect-deployment-restarter
+  namespace: "<namespace-2>"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edgeconnect-deployment-restarter
+subjects:
+  - kind: ServiceAccount
+    name: edgeconnect-k8s-sa
+    namespace: dynatrace

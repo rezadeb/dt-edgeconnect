@@ -1,0 +1,37 @@
+# Step 3c - Allow EdgeConnect to restart Deployments in ONE namespace.
+#
+# Based on the Dynatrace docs example for restarting a Deployment
+# (Role with get, list, patch on "deployments" + RoleBinding).
+#
+# Rules from the docs:
+#   - The Role and the RoleBinding must be in the same namespace.
+#   - The Role/RoleBinding namespace may differ from the EdgeConnect/ServiceAccount namespace.
+#   - Prefer a Role (namespaced) over a ClusterRole; follow least privilege.
+#
+# Replace <target-namespace> with the namespace of the workloads you want to restart.
+#
+# Note: "patch" lets a caller change any field of a Deployment in that namespace,
+# not only restart it. Grant it only where that is acceptable.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: edgeconnect-deployment-rollout-restart
+  namespace: "<target-namespace>"
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: edgeconnect-deployment-rollout-restart
+  namespace: "<target-namespace>"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: edgeconnect-deployment-rollout-restart
+subjects:
+  - kind: ServiceAccount
+    name: edgeconnect-k8s-sa
+    namespace: dynatrace

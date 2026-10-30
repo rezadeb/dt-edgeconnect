@@ -1,0 +1,30 @@
+# Step 3b - Cluster-wide READ-ONLY access for Kubernetes Connector actions such as
+# "Get resource" and "List resources".
+#
+# It cannot change anything. Add only the resource kinds you really need to read.
+# Write access (restart, patch, delete, apply) is granted per namespace in
+# 04-rbac-namespace-restart.yaml.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: edgeconnect-k8s-readonly
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "namespaces", "nodes", "services"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: edgeconnect-k8s-readonly
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edgeconnect-k8s-readonly
+subjects:
+  - kind: ServiceAccount
+    name: edgeconnect-k8s-sa
+    namespace: dynatrace

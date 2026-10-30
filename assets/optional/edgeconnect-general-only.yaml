@@ -1,0 +1,23 @@
+# OPTIONAL - EdgeConnect for general private hosts only (no Kubernetes Connector).
+#
+# Use this when workflows or app functions only need to reach internal HTTP(S)
+# services (for example Jira, ServiceNow, Ansible AWX) and you do not need the
+# Kubernetes actions. It follows the Dynatrace docs example
+# "Provision EdgeConnect for Dynatrace environment".
+#
+# A host pattern can belong to only one EdgeConnect configuration.
+apiVersion: dynatrace.com/v1alpha2
+kind: EdgeConnect
+metadata:
+  name: edgeconnect-general
+  namespace: dynatrace
+spec:
+  apiServer: "<environment-id>.apps.dynatrace.com"
+  hostPatterns:
+    - "internal-service.example.org"
+  oauth:
+    provisioner: true
+    clientSecret: edgeconnect-oauth
+    endpoint: https://sso.dynatrace.com/sso/oauth2/token
+    resource: "urn:dtaccount:<account-uuid>"
+  replicas: 1
